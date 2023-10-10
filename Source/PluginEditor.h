@@ -11,6 +11,16 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
+const int HEIGHT = 600;
+const int WIDTH = 800;
+
+struct CustomRotarySlider : juce::Slider
+{
+    CustomRotarySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox) {
+        
+    }
+};
+
 //==============================================================================
 /**
 */
@@ -28,6 +38,15 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FirstJUCEpluginAudioProcessor& audioProcessor;
+    
+    CustomRotarySlider peakFreqSlider, peakGainSlider, peakQualitySlider, lowCutFreqSlider, highCutFreqSlider, lowCutSlopeSlider, highCutSlopeSlider;
+    
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+    
+    Attachment peakFreqSliderAttachment, peakGainSliderAttachment, peakQualitySliderAttachment, lowCutFreqSliderAttachment, highCutFreqSliderAttachment, lowCutSlopeSliderAttachment, highCutSlopeSliderAttachment;
+    
+    std::vector<juce::Component*> getComps();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstJUCEpluginAudioProcessorEditor)
 };

@@ -11,11 +11,23 @@
 
 //==============================================================================
 FirstJUCEpluginAudioProcessorEditor::FirstJUCEpluginAudioProcessorEditor (FirstJUCEpluginAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p),
+peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
+peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
+peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
+lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
+highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
+lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
+highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    
+    for (auto* comp : getComps()) {
+        addAndMakeVisible(comp);
+    }
+    
+    setSize (WIDTH, HEIGHT);
 }
 
 FirstJUCEpluginAudioProcessorEditor::~FirstJUCEpluginAudioProcessorEditor()
@@ -30,11 +42,40 @@ void FirstJUCEpluginAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+//    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void FirstJUCEpluginAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    
+    auto bounds = getLocalBounds();
+    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.33);
+    
+    auto lowCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
+    auto highCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
+    
+    lowCutFreqSlider.setBounds(lowCutArea.removeFromTop(bounds.getHeight() / 2));
+    lowCutSlopeSlider.setBounds(lowCutArea);
+    highCutFreqSlider.setBounds(highCutArea.removeFromTop(bounds.getHeight() / 2));
+    highCutSlopeSlider.setBounds(highCutArea);
+    
+    peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
+    peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
+    peakQualitySlider.setBounds(bounds);
+}
+
+std::vector<juce::Component*> FirstJUCEpluginAudioProcessorEditor::getComps()
+{
+    return
+    {
+        &peakFreqSlider,
+        &peakGainSlider,
+        &peakQualitySlider,
+        &lowCutFreqSlider,
+        &highCutFreqSlider,
+        &lowCutSlopeSlider,
+        &highCutSlopeSlider
+    };
 }

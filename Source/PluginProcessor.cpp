@@ -95,7 +95,6 @@ void FirstJUCEpluginAudioProcessor::prepareToPlay (double sampleRate, int sample
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    
     juce::dsp::ProcessSpec spec;
     
     spec.maximumBlockSize = samplesPerBlock;
@@ -105,28 +104,7 @@ void FirstJUCEpluginAudioProcessor::prepareToPlay (double sampleRate, int sample
     leftChain.prepare(spec);
     rightChain.prepare(spec);
     
-    auto chainSettings = getChainSettings(apvts);
-    updatePeakFilter(chainSettings);
-    
-    auto lowCutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
-        chainSettings.lowCutFreq,
-        sampleRate,
-        2 * (chainSettings.lowCutSlope + 1)
-   );
-    
-    auto &leftLowCut = leftChain.get<ChainPositions::LowCut>();
-    updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings);
-    
-    auto &rightLowCut = rightChain.get<ChainPositions::LowCut>();
-    updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings);
-    
-    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq, sampleRate, 2 * (chainSettings.highCutSlope + 1));
-    
-    auto &leftHighCut = leftChain.get<ChainPositions::HighCut>();
-    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
-    
-    auto &rightHighCut = rightChain.get<ChainPositions::HighCut>();
-    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
+    updateFilters();
 }
 
 void FirstJUCEpluginAudioProcessor::releaseResources()
@@ -176,32 +154,7 @@ void FirstJUCEpluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    
-    auto chainSettings = getChainSettings(apvts);
-    updatePeakFilter(chainSettings);
-    
-    // Low Cut Code
-    auto lowCutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
-        chainSettings.lowCutFreq,
-        getSampleRate(),
-        2 * (chainSettings.lowCutSlope + 1)
-    );
-    
-    auto &leftLowCut = leftChain.get<ChainPositions::LowCut>();
-    updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings);
-    
-    auto &rightLowCut = rightChain.get<ChainPositions::LowCut>();
-    updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings);
-    
-    // High Cut Code
-    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq, getSampleRate(), 2 * (chainSettings.highCutSlope + 1));
-    
-    auto &leftHighCut = leftChain.get<ChainPositions::HighCut>();
-    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
-    
-    auto &rightHighCut = rightChain.get<ChainPositions::HighCut>();
-    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
-    
+    updateFilters();
     
     // For this plugin, the default loop is unnecessary. Set up audio blocks
     // Two audio blocks, designed for stereo
@@ -225,8 +178,8 @@ bool FirstJUCEpluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* FirstJUCEpluginAudioProcessor::createEditor()
 {
-//    return new FirstJUCEpluginAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new FirstJUCEpluginAudioProcessorEditor (*this);
+//    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -235,12 +188,20 @@ void FirstJUCEpluginAudioProcessor::getStateInformation (juce::MemoryBlock& dest
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void FirstJUCEpluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if (tree.isValid()) {
+        apvts.replaceState(tree);
+        updateFilters();
+    }
 }
 
 // Code I've written
@@ -273,13 +234,6 @@ void FirstJUCEpluginAudioProcessor::updatePeakFilter(const ChainSettings &chainS
     updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
 }
 
-template<int Index, typename ChainType, typename CoefficientType>
-void FirstJUCEpluginAudioProcessor::update(ChainType& chain, const CoefficientType& coefficients)
-{
-    updateCoefficients(chain.template get<Index>().coefficients, coefficients[Index]);
-    chain.template setBypassed<Index>(false);
-}
-
 template<typename ChainType, typename CoefficientType>
 void FirstJUCEpluginAudioProcessor::updateCutFilter(ChainType& chain,
                      const CoefficientType& cutCoefficients,
@@ -302,6 +256,51 @@ void FirstJUCEpluginAudioProcessor::updateCutFilter(ChainType& chain,
             break;
         default: break;
     }
+}
+
+void FirstJUCEpluginAudioProcessor::updateLowCutFilters(const ChainSettings& chainSettings)
+{
+    auto lowCutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
+        chainSettings.lowCutFreq,
+        getSampleRate(),
+        2 * (chainSettings.lowCutSlope + 1)
+    );
+    
+    auto &leftLowCut = leftChain.get<ChainPositions::LowCut>();
+    updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings);
+    
+    auto &rightLowCut = rightChain.get<ChainPositions::LowCut>();
+    updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings);
+}
+
+void FirstJUCEpluginAudioProcessor::updateHighCutFilters(const ChainSettings& chainSettings)
+{
+    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(
+        chainSettings.highCutFreq,
+        getSampleRate(),
+        2 * (chainSettings.highCutSlope + 1)
+    );
+    
+    auto &leftHighCut = leftChain.get<ChainPositions::HighCut>();
+    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
+    
+    auto &rightHighCut = rightChain.get<ChainPositions::HighCut>();
+    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
+}
+
+void FirstJUCEpluginAudioProcessor::updateFilters()
+{
+    auto chainSettings = getChainSettings(apvts);
+    updatePeakFilter(chainSettings);
+    updateLowCutFilters(chainSettings);
+    updateHighCutFilters(chainSettings);
+}
+
+template<int Index, typename ChainType, typename CoefficientType>
+void FirstJUCEpluginAudioProcessor::update(ChainType& chain, const CoefficientType& coefficients)
+{
+    updateCoefficients(chain.template get<Index>().coefficients, coefficients[Index]);
+    chain.template setBypassed<Index>(false);
 }
 
 void FirstJUCEpluginAudioProcessor::updateCoefficients(Coefficients &old, const Coefficients &replacements)
