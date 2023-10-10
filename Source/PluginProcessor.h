@@ -13,14 +13,22 @@
 // Constants I might want to use
 const int LEFT_CHANNEL = 0;
 const int RIGHT_CHANNEL = 1;
+const float SKEW = 0.25f;
 
+enum Slope
+{
+    Slope_12,
+    Slope_24,
+    Slope_36,
+    Slope_48
+};
 
 // Struct given in tutorial
 struct ChainSettings
 {
     float peakFreq {0}, peakGainInDecibels {0}, peakQuality {1.f};
     float lowCutFreq {0}, highCutFreq {0};
-    int lowCutSlope {0}, highCutSlope {0};
+    Slope lowCutSlope {Slope::Slope_12}, highCutSlope {Slope::Slope_12};
 };
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState &apvts);
