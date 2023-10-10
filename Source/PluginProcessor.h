@@ -96,6 +96,8 @@ private:
     
     using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
     
+    using Coefficients = Filter::CoefficientsPtr;
+    
     MonoChain leftChain, rightChain;
     
     enum ChainPositions
@@ -104,6 +106,15 @@ private:
         Peak,
         HighCut
     };
+    
+    void updatePeakFilter(const ChainSettings &chainSettings);
+    static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
+    
+    template<int Index, typename ChainType, typename CoefficientType>
+    void update(ChainType& chain, const CoefficientType& coefficients);
+    
+    template<typename ChainType, typename CoefficientType>
+    void updateCutFilter(ChainType& lowCut, const CoefficientType& cutCoefficients, const ChainSettings& chainSettings);
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstJUCEpluginAudioProcessor)
