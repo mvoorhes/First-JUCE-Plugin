@@ -10,6 +10,11 @@
 
 #include <JuceHeader.h>
 
+// Constants I might want to use
+const int LEFT_CHANNEL = 0;
+const int RIGHT_CHANNEL = 1;
+
+
 //==============================================================================
 /**
 */
@@ -64,6 +69,16 @@ public:
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
     
 private:
+    
+    // Namespace Aliases to make DSP stuff easier
+    using Filter = juce::dsp::IIR::Filter<float>;
+    
+    using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+    
+    using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+    
+    MonoChain leftChain, rightChain;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FirstJUCEpluginAudioProcessor)
 };
