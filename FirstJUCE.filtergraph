@@ -61,11 +61,11 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="5" x="0.5975" y="0.4115384615384615" useARA="0" uiLastX_Normal="374"
-          uiLastY_Normal="162" uiopen_Normal="0">
+  <FILTER uid="5" x="0.5975" y="0.4115384615384615" useARA="0" uiLastX_Normal="840"
+          uiLastY_Normal="163" uiopen_Normal="0">
     <PLUGIN name="FirstJUCEplugin" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="/Users/mvoorhes/Library/Audio/Plug-Ins/VST3/FirstJUCEplugin.vst3"
-            uniqueId="eea0e31f" isInstrument="0" fileTime="18b1afe936f" infoUpdateTime="18b1b034ae5"
+            uniqueId="eea0e31f" isInstrument="0" fileTime="18b1afe936f" infoUpdateTime="18b1b1d70de"
             numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
             uid="acf35095"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
@@ -82,10 +82,10 @@
           uiLastY_Normal="235" uiopen_Normal="0">
     <PLUGIN name="AUAudioFilePlayer" format="AudioUnit" category="Generator"
             manufacturer="Apple" version="1.6.0" file="AudioUnit:Generators/augn,afpl,appl"
-            uniqueId="6163676e" isInstrument="0" fileTime="0" infoUpdateTime="18b1b034ae5"
+            uniqueId="6163676e" isInstrument="0" fileTime="0" infoUpdateTime="18b1b1d70df"
             numInputs="0" numOutputs="2" isShell="0" hasARAExtension="0"
             uid="6163676e"/>
-    <STATE>543.hAGaoMGcv.C1AHv.DTfAGfPBJr.Gc3wGgvUag4VclE1XzUmbkIGUjEFcg8EDarVPUAkbkMWYzAUYxMWZyQWYtQ2TzEFcksTY4c0b0IFc4AWYWYWYxMWZu4FUzkGbk8EDOXVZrUVKxUlYkIWYtMVYyQkag0VYRDFbvwFPgxvzM3vCPDQFXYTZrUlSg0VYWIUYmk1atMmWIM2TkwVYiQWYjYTZrU1WPDyKUMWYxM2KsY2auIGZkM2KD81X00VYtQ2buXUZjU1ay8hQxUVZmgFcfjUXxQlKsA2LgJA0SPQEVbAFYngWRU1Yo8laD8VYywzauAmVRU1Yo8laDEFcg8EDPjzbSUFakMFckQlTkcVZu4lVRU1Yo8laNEVakgvSP.G...........ncJA..fA..................fMtQAA..........UUUUUUUUUUUUUUUUUUUUUE....PUUUUU..........................................H...........39hA..fOGPInkSkcGHRU1Yo8laIHQXlAGaP.fDgU2YtEMHPXkQowVYfDCVU4FcoQGakQF.H.PF.XB.q.PR.DE.YAfW..G.0Afd.rG.8A.g.zH.UB.o.fM.ZCv3.HO.8G.DArQ.bDviA.Y.aF.mADZ.iF.pArZ.xB.......HP..........HB..................Dvt</STATE>
+    <STATE>774.hAGaoMGcv.C1AHv.DTfAGfPBJr.IkXxIpvUag4VclE1XzUmbkIGUjEFcg8EDarVPUAkbkMWYzAUYxMWZyQWYtQ2TzEFcksTY4c0b0IFc4AWYWYWYxMWZu4FUzkGbk8EDOXVZrUVKxUlYkIWYtMVYyQkag0VYRDFbvwFPhxfFR2fCO.AVFkFak4TXsU1URU1Yo8lay8EDw7RUyUlby8Ra181axgVYy8BQuMVcsUlazM2KVkFYk81buXjbkk1YnQGHYElbj4RavMSnQPsDSPQEVbAFY3kTkcVZu4FQuU1bL81avokTkcVZu4FQgQWXeAADIM2TkwVYiQWYjIUYmk1atokTkcVZu4lSg0VYH7DDvA...........ZmR...X...................XiaTP..........PUUUUUUUUUUUUUUUUUUUUUA....TUUUUE..........................................B...........tuX...3yATBZ4TY2AhTkcVZu41zM3vFbzAFdkzbSUFakMFckQlQowVYeAANuT0bkI2buzlcu8lbnU1buPzaiUWak4Fcy8hUoQVYuM2KqkFYyARa0MWZiARY3QWYtQVYj4xcgYWndPsDSPQEV.BFhfvSP.G............So...fA..................fMtQAA..........j..........av01bH....D....................................................H..........HVn6...fOGPInkSkcGHRU1Yo8laIHQXlAGaP.fDgU2YtIMJo7.GVYTZrUFHwXkQowVYfHCVU4FcoQGakQF.H.PF.XB.q.PR.DE.YAfW..G.0Afd.rG.9Avf.vH.TB.x.nL.SCf3.zd..DvBAvP.+E.fArX.RFPnAvc.dGv4Aft.aI.WBbl.nIPaB7l.zIPdB.n.GB.......HP..........rB..................H.j</STATE>
     <LAYOUT>
       <INPUTS/>
       <OUTPUTS>
