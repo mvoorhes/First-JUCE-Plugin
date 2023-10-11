@@ -9,9 +9,85 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+// Look and Feel Code
+//==============================================================================
+void LookAndFeel::drawRotarySlider(juce::Graphics &g,
+                                   int x,
+                                   int y,
+                                   int width,
+                                   int height,
+                                   float sliderPosProportional,
+                                   float rotaryStartAngle,
+                                   float rotaryEndAngle,
+                                   juce::Slider &slider)
+{
+    using namespace juce;
+    
+    auto bounds = Rectangle<float>(x, y, width, height);
+    
+    g.setColour(Colour(97u, 18u, 167u));
+    g.fillEllipse(bounds);
+    
+    g.setColour(Colour(255u, 147u, 1u));
+    g.drawEllipse(bounds, 1.f);
+    
+    auto center = bounds.getCentre();
+    
+    Path p;
+    
+    Rectangle<float> r;
+    r.setLeft(center.getX() - 2);
+    r.setRight(center.getX() + 2);
+    r.setTop(bounds.getY());
+    r.setBottom(center.getY());
+    
+    p.addRectangle(r);
+    
+    jassert(rotaryStartAngle < rotaryEndAngle);
+    
+    auto sliderAngleRadian = jmap(sliderPosProportional, 0.f, 1.f, rotaryStartAngle, rotaryEndAngle);
+    
+    p.applyTransform(AffineTransform().rotated(sliderAngleRadian, center.getX(), center.getY()));
+    
+    g.fillPath(p);
+}
+
+
+// Rotary Slider Code
+//==============================================================================
+void RotarySliderWithLabels::paint(juce::Graphics &g)
+{
+    using namespace juce;
+    
+    auto startAngle = degreesToRadians(180.f + 45.f);   // 7:00
+    auto endAngle = degreesToRadians(180.f - 45.f) + MathConstants<float>::twoPi;     // 5:00
+    
+    auto range = getRange();
+    
+    auto sliderBounds = getSliderBounds();
+    
+    getLookAndFeel().drawRotarySlider(g,
+                                      sliderBounds.getX(),
+                                      sliderBounds.getY(),
+                                      sliderBounds.getWidth(),
+                                      sliderBounds.getHeight(),
+                                      jmap(getValue(),
+                                           range.getStart(),
+                                           range.getEnd(),
+                                           0.0,
+                                           1.0),
+                                      startAngle,
+                                      endAngle, *
+                                      this);
+}
+
+juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
+{
+    return getLocalBounds();
+}
 
 // Response Curve Component Code
-
+//==============================================================================
 ResponseCurveComponent::ResponseCurveComponent(FirstJUCEpluginAudioProcessor& p) : audioProcessor(p)
 {
     const auto& parameters = audioProcessor.getParameters();
@@ -130,6 +206,13 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 //==============================================================================
 FirstJUCEpluginAudioProcessorEditor::FirstJUCEpluginAudioProcessorEditor (FirstJUCEpluginAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
+peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
+peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "dB"),
+peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality"), ""),
+lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq"), "Hz"),
+highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCut Freq"), "Hz"),
+lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope"), "dB/Oct"),
+highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCut Slope"), "dB/Oct"),
 responseCurveComponent(audioProcessor),
 peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
 peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
@@ -139,13 +222,9 @@ highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSli
 lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
 highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    
     for (auto* comp : getComps()) {
         addAndMakeVisible(comp);
     }
-    
     setSize (WIDTH, HEIGHT);
 }
 

@@ -14,11 +14,38 @@
 const int HEIGHT = 600;
 const int WIDTH = 800;
 
-struct CustomRotarySlider : juce::Slider
+struct LookAndFeel : juce::LookAndFeel_V4
 {
-    CustomRotarySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox) {
-        
+    void drawRotarySlider (juce::Graphics&,
+                           int x, int y, int width, int height,
+                           float sliderPosProportional,
+                           float rotaryStartAngle,
+                           float rotaryEndAngle,
+                           juce::Slider&) override;
+};
+
+struct RotarySliderWithLabels : juce::Slider
+{
+    RotarySliderWithLabels(juce::RangedAudioParameter& rap, const juce::String& unitSuffix) :
+    juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalDrag,
+                 juce::Slider::TextEntryBoxPosition::NoTextBox),
+    parameter(&rap), suffix(unitSuffix)
+    {
+        setLookAndFeel(&lnf);
     }
+    ~RotarySliderWithLabels()
+    {
+        setLookAndFeel(nullptr);
+    }
+    
+    void paint(juce::Graphics& g) override;
+    juce::Rectangle<int> getSliderBounds() const;
+    int getTextHeight() const {return 14;}
+    juce::String getDisplayString() const;
+private:
+    LookAndFeel lnf;
+    juce::RangedAudioParameter* parameter;
+    juce::String suffix;
 };
 
 struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::Listener, juce::Timer
@@ -55,9 +82,7 @@ private:
     // access the processor object that created it.
     FirstJUCEpluginAudioProcessor& audioProcessor;
     
-//    juce::Atomic<bool> parametersChanged {false};
-    
-    CustomRotarySlider peakFreqSlider,
+    RotarySliderWithLabels peakFreqSlider,
                         peakGainSlider,
                         peakQualitySlider,
                         lowCutFreqSlider,
@@ -77,8 +102,6 @@ private:
                 highCutFreqSliderAttachment,
                 lowCutSlopeSliderAttachment,
                 highCutSlopeSliderAttachment;
-    
-//    MonoChain monoChain;
     
     std::vector<juce::Component*> getComps();
 
