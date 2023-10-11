@@ -89,36 +89,28 @@ void FirstJUCEpluginAudioProcessorEditor::paint (juce::Graphics& g)
         }
 
         magnitudes[i] = Decibels::gainToDecibels(magnitude);
-
-        Path responseCurve;
-
-        const double outputMin = responseArea.getBottom();
-        const double outputMax = responseArea.getY();
-
-        auto map = [outputMin, outputMax](double input) {
-            return jmap(input, -24.0, 24.0, outputMin, outputMax);
-        };
-
-        responseCurve.startNewSubPath(responseArea.getX(), map(magnitudes.front()));
-
-        for (size_t i = 1; i < magnitudes.size(); i++) {
-            responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
-        }
-
-        g.setColour(Colours::orange);
-        g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
-
-        g.setColour(Colours::white);
-        g.strokePath(responseCurve, PathStrokeType(2.f));
     }
     
-    // Default Code; Not used
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-//    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
-//
-//    g.setColour (Colours::white);
-//    g.setFont (15.0f);
-//    g.drawFittedText ("Hello World!", getLocalBounds(), Justification::centred, 1);
+    Path responseCurve;
+
+    const double outputMin = responseArea.getBottom();
+    const double outputMax = responseArea.getY();
+
+    auto map = [outputMin, outputMax](double input) {
+        return jmap(input, -24.0, 24.0, outputMin, outputMax);
+    };
+
+    responseCurve.startNewSubPath(responseArea.getX(), map(magnitudes.front()));
+
+    for (size_t i = 1; i < magnitudes.size(); i++) {
+        responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
+    }
+
+    g.setColour(Colours::orange);
+    g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
+
+    g.setColour(Colours::white);
+    g.strokePath(responseCurve, PathStrokeType(2.f));
 }
 
 void FirstJUCEpluginAudioProcessorEditor::resized()

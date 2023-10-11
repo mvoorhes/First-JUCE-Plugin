@@ -233,12 +233,6 @@ Coefficients makePeakFilter(const ChainSettings &chainSettings, double sampleRat
 
 void FirstJUCEpluginAudioProcessor::updatePeakFilter(const ChainSettings &chainSettings)
 {
-//    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(
-//        getSampleRate(),
-//        chainSettings.peakFreq,
-//        chainSettings.peakQuality,
-//        juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels)
-//    );
     auto peakCoefficients = makePeakFilter(chainSettings, getSampleRate());
     updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
@@ -339,7 +333,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout FirstJUCEpluginAudioProcesso
         std::make_unique<juce::AudioParameterFloat>(
            juce::ParameterID("Peak Freq", 1),
            "Peak Freq",
-           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, SKEW),
+           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
            750.f
         ),
         std::make_unique<juce::AudioParameterFloat>(
