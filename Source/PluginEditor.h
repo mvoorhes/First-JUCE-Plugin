@@ -21,10 +21,26 @@ struct CustomRotarySlider : juce::Slider
     }
 };
 
+struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::Listener, juce::Timer
+{
+    ResponseCurveComponent(FirstJUCEpluginAudioProcessor&);
+    ~ResponseCurveComponent();
+    
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override {};
+    void timerCallback() override;
+    void paint(juce::Graphics& g) override;
+    
+private:
+    FirstJUCEpluginAudioProcessor& audioProcessor;
+    juce::Atomic<bool> parametersChanged {false};
+    MonoChain monoChain;
+};
+
 //==============================================================================
 /**
 */
-class FirstJUCEpluginAudioProcessorEditor  : public juce::AudioProcessorEditor, juce::AudioProcessorParameter::Listener, juce::Timer
+class FirstJUCEpluginAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     FirstJUCEpluginAudioProcessorEditor (FirstJUCEpluginAudioProcessor&);
@@ -34,20 +50,12 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     
-    // Juce functions that are getting overriden
-    // Listener functions
-    void parameterValueChanged(int parameterIndex, float newValue) override;
-    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override {}    // Doesn't matter, might just remove this
-    
-    // Timer functions
-    void timerCallback() override;
-
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FirstJUCEpluginAudioProcessor& audioProcessor;
     
-    juce::Atomic<bool> parametersChanged {false};
+//    juce::Atomic<bool> parametersChanged {false};
     
     CustomRotarySlider peakFreqSlider,
                         peakGainSlider,
@@ -56,6 +64,8 @@ private:
                         highCutFreqSlider,
                         lowCutSlopeSlider,
                         highCutSlopeSlider;
+    
+    ResponseCurveComponent responseCurveComponent;
     
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
@@ -68,7 +78,7 @@ private:
                 lowCutSlopeSliderAttachment,
                 highCutSlopeSliderAttachment;
     
-    MonoChain monoChain;
+//    MonoChain monoChain;
     
     std::vector<juce::Component*> getComps();
 
