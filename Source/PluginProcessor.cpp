@@ -239,7 +239,7 @@ void FirstJUCEpluginAudioProcessor::updatePeakFilter(const ChainSettings &chainS
 }
 
 template<typename ChainType, typename CoefficientType>
-void FirstJUCEpluginAudioProcessor::updateCutFilter(ChainType& chain,
+void updateCutFilter(ChainType& chain,
                      const CoefficientType& cutCoefficients,
                      const Slope& slope)
 {
@@ -264,12 +264,7 @@ void FirstJUCEpluginAudioProcessor::updateCutFilter(ChainType& chain,
 
 void FirstJUCEpluginAudioProcessor::updateLowCutFilters(const ChainSettings& chainSettings)
 {
-    auto lowCutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
-        chainSettings.lowCutFreq,
-        getSampleRate(),
-        2 * (chainSettings.lowCutSlope + 1)
-    );
-    
+    auto lowCutCoefficients = makeLowCutFilter(chainSettings, getSampleRate());
     auto &leftLowCut = leftChain.get<ChainPositions::LowCut>();
     updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
     
@@ -279,12 +274,7 @@ void FirstJUCEpluginAudioProcessor::updateLowCutFilters(const ChainSettings& cha
 
 void FirstJUCEpluginAudioProcessor::updateHighCutFilters(const ChainSettings& chainSettings)
 {
-    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(
-        chainSettings.highCutFreq,
-        getSampleRate(),
-        2 * (chainSettings.highCutSlope + 1)
-    );
-    
+    auto highCutCoefficients = makeHighCutFilter(chainSettings, getSampleRate());
     auto &leftHighCut = leftChain.get<ChainPositions::HighCut>();
     updateCutFilter(leftHighCut, highCutCoefficients, chainSettings.highCutSlope);
     
@@ -295,13 +285,13 @@ void FirstJUCEpluginAudioProcessor::updateHighCutFilters(const ChainSettings& ch
 void FirstJUCEpluginAudioProcessor::updateFilters()
 {
     auto chainSettings = getChainSettings(apvts);
-    updatePeakFilter(chainSettings);
     updateLowCutFilters(chainSettings);
+    updatePeakFilter(chainSettings);
     updateHighCutFilters(chainSettings);
 }
 
 template<int Index, typename ChainType, typename CoefficientType>
-void FirstJUCEpluginAudioProcessor::update(ChainType& chain, const CoefficientType& coefficients)
+void update(ChainType& chain, const CoefficientType& coefficients)
 {
     updateCoefficients(chain.template get<Index>().coefficients, coefficients[Index]);
     chain.template setBypassed<Index>(false);
@@ -333,7 +323,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout FirstJUCEpluginAudioProcesso
         std::make_unique<juce::AudioParameterFloat>(
            juce::ParameterID("Peak Freq", 1),
            "Peak Freq",
-           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
+           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, SKEW),
            750.f
         ),
         std::make_unique<juce::AudioParameterFloat>(
