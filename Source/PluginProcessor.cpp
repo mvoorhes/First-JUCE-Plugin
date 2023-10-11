@@ -237,14 +237,14 @@ void FirstJUCEpluginAudioProcessor::updatePeakFilter(const ChainSettings &chainS
 template<typename ChainType, typename CoefficientType>
 void FirstJUCEpluginAudioProcessor::updateCutFilter(ChainType& chain,
                      const CoefficientType& cutCoefficients,
-                     const ChainSettings& chainSettings)
+                     const Slope& slope)
 {
     chain.template setBypassed<0>(true);
     chain.template setBypassed<1>(true);
     chain.template setBypassed<2>(true);
     chain.template setBypassed<3>(true);
 
-    switch (chainSettings.lowCutSlope) {
+    switch (slope) {
         case Slope_48:
             update<3>(chain, cutCoefficients);
         case Slope_36:
@@ -267,10 +267,10 @@ void FirstJUCEpluginAudioProcessor::updateLowCutFilters(const ChainSettings& cha
     );
     
     auto &leftLowCut = leftChain.get<ChainPositions::LowCut>();
-    updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings);
+    updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
     
     auto &rightLowCut = rightChain.get<ChainPositions::LowCut>();
-    updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings);
+    updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
 }
 
 void FirstJUCEpluginAudioProcessor::updateHighCutFilters(const ChainSettings& chainSettings)
@@ -282,10 +282,10 @@ void FirstJUCEpluginAudioProcessor::updateHighCutFilters(const ChainSettings& ch
     );
     
     auto &leftHighCut = leftChain.get<ChainPositions::HighCut>();
-    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings);
+    updateCutFilter(leftHighCut, highCutCoefficients, chainSettings.highCutSlope);
     
     auto &rightHighCut = rightChain.get<ChainPositions::HighCut>();
-    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings);
+    updateCutFilter(rightHighCut, highCutCoefficients, chainSettings.highCutSlope);
 }
 
 void FirstJUCEpluginAudioProcessor::updateFilters()
