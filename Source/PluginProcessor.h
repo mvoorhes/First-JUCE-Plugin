@@ -19,6 +19,7 @@ const float SKEW = 0.25f;
 using Filter = juce::dsp::IIR::Filter<float>;
 using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
 using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+using Coefficients = Filter::CoefficientsPtr;
 
 enum ChainPositions
 {
@@ -44,6 +45,10 @@ struct ChainSettings
 };
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState &apvts);
+
+void updateCoefficients(Coefficients& old, const Coefficients& replacements);
+
+Coefficients makePeakFilter(const ChainSettings& chainSettings, double sampleRate);
 
 
 //==============================================================================
@@ -101,12 +106,9 @@ public:
     
 private:
     
-    using Coefficients = Filter::CoefficientsPtr;
-    
     MonoChain leftChain, rightChain;
     
     void updatePeakFilter(const ChainSettings &chainSettings);
-    static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
     
     template<int Index, typename ChainType, typename CoefficientType>
     void update(ChainType& chain, const CoefficientType& coefficients);

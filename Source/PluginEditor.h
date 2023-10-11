@@ -24,7 +24,7 @@ struct CustomRotarySlider : juce::Slider
 //==============================================================================
 /**
 */
-class FirstJUCEpluginAudioProcessorEditor  : public juce::AudioProcessorEditor
+class FirstJUCEpluginAudioProcessorEditor  : public juce::AudioProcessorEditor, juce::AudioProcessorParameter::Listener, juce::Timer
 {
 public:
     FirstJUCEpluginAudioProcessorEditor (FirstJUCEpluginAudioProcessor&);
@@ -33,11 +33,21 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    // Juce functions that are getting overriden
+    // Listener functions
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override {}    // Doesn't matter, might just remove this
+    
+    // Timer functions
+    void timerCallback() override;
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FirstJUCEpluginAudioProcessor& audioProcessor;
+    
+    juce::Atomic<bool> parametersChanged {false};
     
     CustomRotarySlider peakFreqSlider,
                         peakGainSlider,

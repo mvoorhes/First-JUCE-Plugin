@@ -37,12 +37,88 @@ FirstJUCEpluginAudioProcessorEditor::~FirstJUCEpluginAudioProcessorEditor()
 //==============================================================================
 void FirstJUCEpluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    
+    using namespace juce;
+    
+    g.fillAll(Colours::black);
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-//    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    auto bounds = getLocalBounds();
+    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.33);
+
+    auto w = responseArea.getWidth();
+
+    auto& lowCut = monoChain.get<ChainPositions::LowCut>();
+    auto& peak = monoChain.get<ChainPositions::Peak>();
+    auto& highCut = monoChain.get<ChainPositions::HighCut>();
+
+    auto sampleRate = audioProcessor.getSampleRate();
+
+    std::vector<double> magnitudes(w);
+
+    for (int i = 0; i < w; i++) {
+        double magnitude = 1.f;
+        auto frequency = mapToLog10(double(i) / double(w), 20.0, 20000.0);
+        if (!monoChain.isBypassed<ChainPositions::Peak>()) {
+            magnitude *= peak.coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+
+        if (!lowCut.isBypassed<0>()) {
+            magnitude *= lowCut.get<0>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+        if (!lowCut.isBypassed<1>()) {
+            magnitude *= lowCut.get<1>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+        if (!lowCut.isBypassed<2>()) {
+            magnitude *= lowCut.get<2>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+        if (!lowCut.isBypassed<3>()) {
+            magnitude *= lowCut.get<3>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+
+        if (!highCut.isBypassed<0>()) {
+            magnitude *= highCut.get<0>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+        if (!highCut.isBypassed<1>()) {
+            magnitude *= highCut.get<1>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+        if (!highCut.isBypassed<2>()) {
+            magnitude *= highCut.get<2>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+        if (!highCut.isBypassed<3>()) {
+            magnitude *= highCut.get<3>().coefficients->getMagnitudeForFrequency(frequency, sampleRate);
+        }
+
+        magnitudes[i] = Decibels::gainToDecibels(magnitude);
+
+        Path responseCurve;
+
+        const double outputMin = responseArea.getBottom();
+        const double outputMax = responseArea.getY();
+
+        auto map = [outputMin, outputMax](double input) {
+            return jmap(input, -24.0, 24.0, outputMin, outputMax);
+        };
+
+        responseCurve.startNewSubPath(responseArea.getX(), map(magnitudes.front()));
+
+        for (size_t i = 1; i < magnitudes.size(); i++) {
+            responseCurve.lineTo(responseArea.getX() + i, map(magnitudes[i]));
+        }
+
+        g.setColour(Colours::orange);
+        g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
+
+        g.setColour(Colours::white);
+        g.strokePath(responseCurve, PathStrokeType(2.f));
+    }
+    
+    // Default Code; Not used
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+//    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+//
+//    g.setColour (Colours::white);
+//    g.setFont (15.0f);
+//    g.drawFittedText ("Hello World!", getLocalBounds(), Justification::centred, 1);
 }
 
 void FirstJUCEpluginAudioProcessorEditor::resized()
@@ -64,6 +140,19 @@ void FirstJUCEpluginAudioProcessorEditor::resized()
     peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
     peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
     peakQualitySlider.setBounds(bounds);
+}
+
+void FirstJUCEpluginAudioProcessorEditor::parameterValueChanged(int parameterIndex, float newValue)
+{
+    parametersChanged.set(true);
+}
+
+void FirstJUCEpluginAudioProcessorEditor::timerCallback()
+{
+    if (parametersChanged.compareAndSetBool(false, true)) {
+        // update the monochain
+        // signal the repaint
+    }
 }
 
 std::vector<juce::Component*> FirstJUCEpluginAudioProcessorEditor::getComps()
