@@ -303,9 +303,9 @@ void ResponseCurveComponent::resized()
     Graphics g(background);
     Array<float> frequencies
     {
-        20, 30, 40, 50, 100,
-        200, 300, 400, 500, 1000,
-        2000, 3000, 4000, 5000, 10000,
+        20, /*30, 40,*/ 50, 100,
+        200, /*300, 400,*/ 500, 1000,
+        2000, /*3000, 4000,*/ 5000, 10000,
         20000
     };
     
@@ -328,11 +328,6 @@ void ResponseCurveComponent::resized()
         g.drawVerticalLine(x, top, bottom);
     }
     
-//    for (auto frequency : frequencies) {
-//        auto normalizeX = mapFromLog10(frequency, MIN_FREQ, MAX_FREQ);
-//        g.drawVerticalLine(getWidth() * normalizeX, 0.f, getHeight());
-//    }
-    
     Array<float> gain
     {
         -24, -12, 0, 12, 24
@@ -340,12 +335,59 @@ void ResponseCurveComponent::resized()
     
     for (auto gdB : gain) {
         auto y = jmap(gdB, -24.f, 24.f, float(bottom), float(top));
-//        g.drawHorizontalLine(y, 0, getWidth());
         g.setColour(gdB == 0.f ? Colours::green : Colours::darkgrey);
         g.drawHorizontalLine(y, float(left), float(right));
     }
     
-//    g.drawRect(getAnalysisArea());
+    // Draw frequency labels
+    g.setColour(Colours::lightgrey);
+    const int fontHeight = 12;
+    g.setFont(fontHeight);
+    
+    for (int i = 0; i < frequencies.size(); i++) {
+        auto frequency = frequencies[i];
+        auto x = xs[i];
+        
+        bool addK = false;
+        String str;
+        if (frequency > 999.f) {
+            addK = true;
+            frequency /= 1000.f;
+        }
+        
+        str << frequency;
+        if (addK) str << "k";
+        str << "Hz";
+        
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        
+        Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setCentre(x, 0);
+        r.setY(1);
+        
+        g.drawFittedText(str, r, Justification::centred, 1);
+    }
+    
+    // Draw gain labels
+    for (auto gdB : gain) {
+        auto y = jmap(gdB, -24.f, 24.f, float(bottom), float(top));
+        
+        String str;
+        if (gdB > 0) str << "+";
+        str << gdB;
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        
+        Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setX(getWidth() - textWidth);
+        r.setCentre(r.getCentreX(), y);
+        
+        g.setColour(gdB == 0.f ? Colours::green : Colours::lightgrey);
+        
+        g.drawFittedText(str, r, Justification::centred, 1);
+        
+    }
 }
 
 
@@ -357,10 +399,10 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 //    bounds.reduce(JUCE_LIVE_CONSTANT(5),
 //                  JUCE_LIVE_CONSTANT(5));
     
-    bounds.removeFromTop(12);
-    bounds.removeFromBottom(2);
-    bounds.removeFromLeft(20);
-    bounds.removeFromRight(20);
+    bounds.removeFromTop(15);
+    bounds.removeFromBottom(3);
+    bounds.removeFromLeft(24);
+    bounds.removeFromRight(24);
     
     return bounds;
 }
