@@ -14,6 +14,10 @@
 const int LEFT_CHANNEL = 0;
 const int RIGHT_CHANNEL = 1;
 const float SKEW = 0.25f;
+const float MIN_FREQ = 20.f;
+const float MAX_FREQ = 20000.f;
+const float MIN_GAIN = -24;
+const float MAX_GAIN = 24;
 
 // Namespace Aliases to make DSP stuff easier
 using Filter = juce::dsp::IIR::Filter<float>;

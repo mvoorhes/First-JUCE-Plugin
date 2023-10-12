@@ -220,8 +220,12 @@ void ResponseCurveComponent::updateChain()
 void ResponseCurveComponent::paint (juce::Graphics& g)
 {
     using namespace juce;
+    
+    g.drawImage(background, getLocalBounds().toFloat());
 
-    auto responseArea = getLocalBounds();
+//    auto responseArea = getLocalBounds();
+//    auto responseArea = getRenderArea();
+    auto responseArea = getAnalysisArea();
 
     auto w = responseArea.getWidth();
 
@@ -285,12 +289,94 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     }
 
     g.setColour(Colours::orange);
-    g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
+    g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
 
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
 }
 
+void ResponseCurveComponent::resized()
+{
+    using namespace juce;
+    background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
+    
+    Graphics g(background);
+    Array<float> frequencies
+    {
+        20, 30, 40, 50, 100,
+        200, 300, 400, 500, 1000,
+        2000, 3000, 4000, 5000, 10000,
+        20000
+    };
+    
+    auto renderArea = getAnalysisArea();
+    auto left = renderArea.getX();
+    auto right = renderArea.getRight();
+    auto top = renderArea.getY();
+    auto bottom = renderArea.getBottom();
+    auto width = renderArea.getWidth();
+    
+    Array<float> xs;
+    for (auto frequency : frequencies) {
+        auto normalizeX = mapFromLog10(frequency, MIN_FREQ, MAX_FREQ);
+        xs.add(left + width * normalizeX);
+    }
+    
+    g.setColour(Colours::darkgrey);
+    
+    for (auto x : xs) {
+        g.drawVerticalLine(x, top, bottom);
+    }
+    
+//    for (auto frequency : frequencies) {
+//        auto normalizeX = mapFromLog10(frequency, MIN_FREQ, MAX_FREQ);
+//        g.drawVerticalLine(getWidth() * normalizeX, 0.f, getHeight());
+//    }
+    
+    Array<float> gain
+    {
+        -24, -12, 0, 12, 24
+    };
+    
+    for (auto gdB : gain) {
+        auto y = jmap(gdB, -24.f, 24.f, float(bottom), float(top));
+//        g.drawHorizontalLine(y, 0, getWidth());
+        g.setColour(gdB == 0.f ? Colours::green : Colours::darkgrey);
+        g.drawHorizontalLine(y, float(left), float(right));
+    }
+    
+//    g.drawRect(getAnalysisArea());
+}
+
+
+juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
+{
+    auto bounds = getLocalBounds();
+    
+//    bounds.reduce(10, 8);
+//    bounds.reduce(JUCE_LIVE_CONSTANT(5),
+//                  JUCE_LIVE_CONSTANT(5));
+    
+    bounds.removeFromTop(12);
+    bounds.removeFromBottom(2);
+    bounds.removeFromLeft(20);
+    bounds.removeFromRight(20);
+    
+    return bounds;
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
+{
+    auto bounds = getRenderArea();
+    
+    bounds.removeFromTop(4);
+    bounds.removeFromBottom(4);
+    
+    return bounds;
+}
+
+
+// Plugin Editor Code
 //==============================================================================
 FirstJUCEpluginAudioProcessorEditor::FirstJUCEpluginAudioProcessorEditor (FirstJUCEpluginAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
